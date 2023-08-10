@@ -1,12 +1,23 @@
-volatile unsigned int * const UART0DR = (unsigned int *) 0x09000000;
+// Copyright (c) 2023., Kellerman Rivero <krsloco@gmail.com>
+//
+// SPDX-License-Identifier: MIT
 
-void print_uart0(const char *s) {
-    while(*s != '\0') {
-        *UART0DR = (unsigned int)(*s);
-        s++;
-    }
-}
+#include <kernel/klibc/stdlib.h>
+#include <kernel/kmalloc.h>
 
 void __vos_main() {
-    print_uart0("Hello world!\n");
+  debug_msg("Welcome to VirtuOS!\r\n");
+  kmalloc_init();
+  debug_msg("Allocating memory for temporal string!\r\n");
+  char* ptr = (char*) kmalloc(7);
+  debug_msg("Temporal string allocated!\r\n");
+  ptr[0] = 'K';
+  ptr[1] = 'E';
+  ptr[2] = 'L';
+  ptr[3] = 'L';
+  ptr[4] = 'E';
+  ptr[5] = 'R';
+  ptr[6] = '\0';
+  debug_msg("Printing my name!\r\n");
+  debug_msg(ptr);
 }

@@ -2,11 +2,12 @@ cmake_minimum_required(VERSION 3.19)
 enable_language(ASM C CXX)
 project("VirtuOS")
 
+include_directories(include)
 add_subdirectory(boot)
-
+add_subdirectory(kernel)
 add_executable(kernel.elf empty.c)
-target_link_libraries(kernel.elf boot)
-set_target_properties(kernel.elf PROPERTIES  LINK_FLAGS "-nostdlib -nostartfiles -ffreestanding -T ${CMAKE_SOURCE_DIR}/main.ld")
+target_link_libraries(kernel.elf boot kernel)
+set_target_properties(kernel.elf PROPERTIES LINK_FLAGS "-nostdlib -nostartfiles -ffreestanding -T ${CMAKE_SOURCE_DIR}/main.ld")
 
 add_custom_command(
         OUTPUT virtuos.bin
