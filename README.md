@@ -1,2 +1,3 @@
-# virtuos
-VirtOS is an operating system for ARM65 architecture
+# VirtuOS
+
+VirtuOS is an operating system for Virt machine
