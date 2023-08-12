@@ -27,13 +27,13 @@ void *find_fit(size_t size) {
 }
 
 void kmalloc_init() {
-  debug_msg("Initializing Heap\r\n");
+  debug_msg("Initializing Heap");
   memset(startup_heap_memory, 0, sizeof(startup_heap_memory));
 
   size_t *header = (size_t *) startup_heap_memory;
   *header = STARTUP_HEAP_MEMORY - SIZE_T_SIZE;
 
-  debug_msg("Heap initialized at %p with size %d!\r\n", header, STARTUP_HEAP_MEMORY);
+  debug_msg("Heap initialized at %p with size %d!", (uintptr_t) header, STARTUP_HEAP_MEMORY);
 }
 
 void *kmalloc(size_t size) {

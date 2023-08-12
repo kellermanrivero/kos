@@ -2,23 +2,18 @@
 //
 // SPDX-License-Identifier: MIT
 
+#include <limits.h>
 #include <kernel/klibc/stdlib.h>
+#include <kernel/dtb/dtb.h>
 #include <kernel/kmalloc.h>
 
+extern const volatile unsigned int dtb;
+
 void __vos_main() {
-  debug_msg("Welcome to VirtuOS!\r\n");
-  debug_msg("By %s (%d) \r\n", "Kellerman Rivero", 2023);
+  struct fdt_header *header = &dtb;
+  debug_msg("Welcome to VirtuOS!");
+  debug_msg("By Kellerman Rivero");
+  debug_msg("Running in a %d bit processor", (sizeof(uintptr_t) / sizeof(char)) * CHAR_BIT);
+  debug_msg("Device Tree: %p, magic: %x", &dtb, header->magic);
   kmalloc_init();
-  debug_msg("Allocating memory for temporal string!\r\n");
-  char* ptr = (char*) kmalloc(7);
-  debug_msg("Temporal string allocated!\r\n");
-  ptr[0] = 'K';
-  ptr[1] = 'E';
-  ptr[2] = 'L';
-  ptr[3] = 'L';
-  ptr[4] = 'E';
-  ptr[5] = 'R';
-  ptr[6] = '\0';
-  debug_msg("Printing my name!\r\n");
-  debug_msg(ptr);
 }
