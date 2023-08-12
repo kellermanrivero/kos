@@ -7,6 +7,7 @@
 
 void __vos_main() {
   debug_msg("Welcome to VirtuOS!\r\n");
+  debug_msg("By %s (%d) \r\n", "Kellerman Rivero", 2023);
   kmalloc_init();
   debug_msg("Allocating memory for temporal string!\r\n");
   char* ptr = (char*) kmalloc(7);

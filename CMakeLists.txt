@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.19)
 enable_language(ASM C CXX)
 project("VirtuOS")
 
+# Use C99
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED TRUE)
+
+# Prevents use of floating point registers (since they are not ready)
+add_compile_options(-mgeneral-regs-only)
+
 include_directories(include)
 add_subdirectory(boot)
 add_subdirectory(kernel)

@@ -5,7 +5,7 @@
 #include <kernel/klibc/stdlib.h>
 #include <kernel/kmalloc.h>
 
-#define STARTUP_HEAP_MEMORY (256)
+#define STARTUP_HEAP_MEMORY (1024*1024*1)
 
 // From: https://moss.cs.iit.edu/cs351/slides/slides-malloc.pdf
 #define ALIGNMENT 8 // must be a power of 2
@@ -33,7 +33,7 @@ void kmalloc_init() {
   size_t *header = (size_t *) startup_heap_memory;
   *header = STARTUP_HEAP_MEMORY - SIZE_T_SIZE;
 
-  debug_msg("Heap initialized!\r\n");
+  debug_msg("Heap initialized at %p with size %d!\r\n", header, STARTUP_HEAP_MEMORY);
 }
 
 void *kmalloc(size_t size) {
