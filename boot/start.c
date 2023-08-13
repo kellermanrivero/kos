@@ -14,6 +14,6 @@ void __vos_main() {
   debug_msg("Welcome to VirtuOS!");
   debug_msg("By Kellerman Rivero");
   debug_msg("Running in a %d bit processor", (sizeof(uintptr_t) / sizeof(char)) * CHAR_BIT);
-  debug_msg("Device Tree: %p, magic: %x", &dtb, header->magic);
+  parse_device_tree(header);
   kmalloc_init();
 }

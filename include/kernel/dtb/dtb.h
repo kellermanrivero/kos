@@ -20,3 +20,6 @@ struct fdt_header {
   uint32_t size_dt_strings;
   uint32_t size_dt_struct;
 };
+
+void fdt_header_print(struct fdt_header* header);
+void parse_device_tree(struct fdt_header* header);

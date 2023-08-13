@@ -23,7 +23,7 @@ add_custom_command(
         COMMAND ${CMAKE_OBJCOPY} ARGS -O binary kernel.elf virtuos.bin
 )
 
-add_custom_target(run ALL DEPENDS virtuos.bin)
-#add_custom_command(TARGET run POST_BUILD COMMAND
-#        qemu-system-aarch64 -M virt -cpu cortex-a57 -kernel virtuos.bin
-#        COMMENT "Running QEMU...")
+add_custom_target(run ALL DEPENDS kernel.elf)
+add_custom_command(TARGET run POST_BUILD COMMAND
+        qemu-system-aarch64 -M virt -cpu cortex-a57 -kernel kernel.elf -S -s
+        COMMENT "Running QEMU...")

@@ -16,8 +16,12 @@ void debug_putc(char c) {
 
 // Print integer digit by digit
 void debug_write_int(int64_t n) {
-  int64_t d; int64_t r = 0;
+  if (n == 0) {
+    debug_putc('0');
+    return;
+  }
 
+  int64_t d; int64_t r = 0;
   if (n < 0) {
     debug_putc('-');
   }
@@ -118,4 +122,15 @@ void *memset(void *s, int c, size_t len) {
     len--;
   }
   return s;
+}
+
+void swap_bytes(void* s, size_t len) {
+  char *p = s;
+  size_t lo, hi;
+  for(lo=0, hi=len-1; hi>lo; lo++, hi--)
+  {
+    char tmp=p[lo];
+    p[lo] = p[hi];
+    p[hi] = tmp;
+  }
 }
