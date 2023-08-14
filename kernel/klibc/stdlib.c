@@ -47,6 +47,7 @@ void debug_write_ptr(uintptr_t n, int size) {
 
   if (n == 0) {
     debug_putc('0');
+    debug_putc('0');
     return;
   }
 

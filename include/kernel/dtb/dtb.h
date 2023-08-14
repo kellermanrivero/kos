@@ -42,5 +42,5 @@ struct fdt_prop_data {
 uintptr_t fdt_align(uintptr_t ptr, size_t size);
 void fdt_header_print(struct fdt_header* header);
 void fdt_reserve_entry_print(struct fdt_reserve_entry* entry);
-void parse_device_tree_structure_block(struct fdt_header* header);
+void dump_device_tree(struct fdt_header* header);
 void parse_device_tree(struct fdt_header* header);

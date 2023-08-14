@@ -5,11 +5,14 @@
 #include <kernel/dtb/dtb.h>
 #include <kernel/klibc/stdlib.h>
 
+#ifdef DTB_DEBUG
+#define DTB_DEBUG_LOG(fmt, args...) debug_msg(fmt, args)
+#else
+#define DTB_DEBUG_LOG(fmt, args...)
+#endif
+
 uintptr_t fdt_align(uintptr_t ptr, size_t size) {
   return ((ptr + (size - 1)) & ~(size - 1));
-}
-
-void fdt_print_byte(uint8_t byte) {
 }
 
 void fdt_header_print(struct fdt_header *header) {
@@ -33,47 +36,61 @@ void fdt_reserve_entry_print(struct fdt_reserve_entry *entry) {
 }
 
 
-void parse_device_tree_structure_block(struct fdt_header *header) {
+void dump_device_tree(struct fdt_header *header) {
   void *block_start = ((void *) header) + header->off_dt_struct;
   void *block_end = block_start + header->size_dt_struct;
 
   void *strings_start = ((void *) header) + header->off_dt_strings;
   debug_msg("Structure block range %p - %p", block_start, block_end);
 
+  int32_t nested_levels = 1;
   int32_t *cursor = block_start;
   while ((void *) cursor < block_end) {
     swap_bytes(cursor, sizeof(int32_t));
     int32_t token = *cursor;
-    debug_msg("Token at %p, value is %x", cursor, token);
+    DTB_DEBUG_LOG("Token at %p, value is %x", cursor, token);
+
+    // Add some spaces to simulate nesting
+    for(int p = 1; p <= nested_levels; p++) {
+      int pp = p;
+      while(pp) {
+        debug_printf(" ");
+        pp--;
+      }
+    }
+
     switch (token) {
       case FDT_BEGIN_NODE: {
-        debug_msg("FDT_BEGIN_NODE");
+        DTB_DEBUG_LOG("FDT_BEGIN_NODE");
+        ++nested_levels;
         ++cursor;
         if (*cursor) {
           char *c = (char*) cursor;
+          debug_printf("%s {", c);
           while (*c) {
-            debug_printf("%x ", *c);
             c++;
           }
           debug_msg("");
           c++;
           cursor = (int32_t *) fdt_align((uintptr_t) c, sizeof(int32_t));
         } else {
-          debug_msg("Node: root");
+          debug_msg("/ {");
           ++cursor;
         }
         break;
       }
       case FDT_END_NODE:
-        debug_msg("FDT_END_NODE");
+        DTB_DEBUG_LOG("FDT_END_NODE");
+        --nested_levels;
         ++cursor;
+        debug_msg("}");
         break;
       case FDT_NOP:
-        debug_msg("FDT_NOP");
+        DTB_DEBUG_LOG("FDT_NOP");
         ++cursor;
         break;
       case FDT_PROP:
-        debug_msg("FDT_PROP");
+        DTB_DEBUG_LOG("FDT_PROP");
         ++cursor;
 
         struct fdt_prop_data *property = (struct fdt_prop_data *) cursor;
@@ -98,7 +115,10 @@ void parse_device_tree_structure_block(struct fdt_header *header) {
         }
         break;
       case FDT_END:
-        debug_msg("FDT_END");
+        DTB_DEBUG_LOG("FDT_END");
+        goto exit;
+      default:
+        DTB_DEBUG_LOG("FDT_ERROR");
         goto exit;
     }
   }
@@ -127,5 +147,5 @@ void parse_device_tree(struct fdt_header *header) {
     entry++;
   }
 
-  parse_device_tree_structure_block(header);
+  dump_device_tree(header);
 }
