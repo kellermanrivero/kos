@@ -9,11 +9,24 @@
 #include <stdarg.h>
 
 /**
- * Prints a debug message over UART / Serial interface
+ * Writes a byte over UART / Serial interface
+ * @param c the byte to be write
+ */
+void debug_putc(char c);
+
+/**
+ * Writes a new line over UART / Serial interface
  * @param fmt A string with format specifiers (similar to printf)
  * @param ... A variadic list of arguments to be printed
  */
 void debug_msg(const char* fmt, ...);
+
+/**
+ * Prints a debug message over UART / Serial interface
+ * @param fmt A string with format specifiers (similar to printf)
+ * @param ... A variadic list of arguments to be printed
+ */
+void debug_printf(const char* fmt, ...);
 
 /**
  * Sets a memory region with a value

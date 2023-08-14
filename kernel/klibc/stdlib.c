@@ -44,6 +44,12 @@ void debug_write_int(int64_t n) {
 void debug_write_ptr(uintptr_t n, int size) {
   debug_putc('0');
   debug_putc('x');
+
+  if (n == 0) {
+    debug_putc('0');
+    return;
+  }
+
   int n_shifts = (size  * CHAR_BIT) - 4;
   while(n_shifts >= 0) {
     uintptr_t d = n >> n_shifts;
@@ -60,19 +66,12 @@ void debug_write(const char* string) {
   }
 }
 
-/**
- * Minimal implementation for debug messages, currently uses PL011
- * @param message the message to be printed
- */
-void debug_msg(const char* fmt, ...) {
+void debug_printf_valist(const char* fmt, va_list ap) {
   if (fmt == NULL) {
     return;
   }
 
-  va_list ap;
-  va_start(ap, fmt);
-
-  char* s;
+  char* s; char c;
   int i; long long l;
   while (*fmt != '\0') {
     switch (*fmt) {
@@ -109,8 +108,31 @@ void debug_msg(const char* fmt, ...) {
     }
     fmt++;
   }
+}
 
+/**
+ * Minimal implementation for debug messages, currently uses PL011
+ * @param message the message to be printed
+ */
+void debug_msg(const char* fmt, ...) {
+  if (fmt == NULL) {
+    return;
+  }
+  va_list ap;
+  va_start(ap, fmt);
+  debug_printf_valist(fmt, ap);
+  va_end(ap);
   debug_write("\n\r");
+}
+
+void debug_printf(const char* fmt, ...) {
+  if (fmt == NULL) {
+    return;
+  }
+
+  va_list ap;
+  va_start(ap, fmt);
+  debug_printf_valist(fmt, ap);
   va_end(ap);
 }
 

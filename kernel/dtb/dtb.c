@@ -2,10 +2,17 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include <kernel/klibc/stdlib.h>
 #include <kernel/dtb/dtb.h>
+#include <kernel/klibc/stdlib.h>
 
-void fdt_header_print(struct fdt_header* header) {
+uintptr_t fdt_align(uintptr_t ptr, size_t size) {
+  return ((ptr + (size - 1)) & ~(size - 1));
+}
+
+void fdt_print_byte(uint8_t byte) {
+}
+
+void fdt_header_print(struct fdt_header *header) {
   debug_msg("=============== Device Tree Blob (Header) =================");
   debug_msg("Version: %d (compatible with: %d)", header->version, header->last_comp_version);
   debug_msg("Magic: %x", header->magic);
@@ -19,14 +26,106 @@ void fdt_header_print(struct fdt_header* header) {
   debug_msg("===========================================================");
 }
 
-void parse_device_tree(struct fdt_header* header) {
+void fdt_reserve_entry_print(struct fdt_reserve_entry *entry) {
+  debug_msg("=============== Reserved Memory Block =================");
+  debug_msg("Address: %p (size: %p)", entry->address, entry->size);
+  debug_msg("=======================================================");
+}
+
+
+void parse_device_tree_structure_block(struct fdt_header *header) {
+  void *block_start = ((void *) header) + header->off_dt_struct;
+  void *block_end = block_start + header->size_dt_struct;
+
+  void *strings_start = ((void *) header) + header->off_dt_strings;
+  debug_msg("Structure block range %p - %p", block_start, block_end);
+
+  int32_t *cursor = block_start;
+  while ((void *) cursor < block_end) {
+    swap_bytes(cursor, sizeof(int32_t));
+    int32_t token = *cursor;
+    debug_msg("Token at %p, value is %x", cursor, token);
+    switch (token) {
+      case FDT_BEGIN_NODE: {
+        debug_msg("FDT_BEGIN_NODE");
+        ++cursor;
+        if (*cursor) {
+          char *c = (char*) cursor;
+          while (*c) {
+            debug_printf("%x ", *c);
+            c++;
+          }
+          debug_msg("");
+          c++;
+          cursor = (int32_t *) fdt_align((uintptr_t) c, sizeof(int32_t));
+        } else {
+          debug_msg("Node: root");
+          ++cursor;
+        }
+        break;
+      }
+      case FDT_END_NODE:
+        debug_msg("FDT_END_NODE");
+        ++cursor;
+        break;
+      case FDT_NOP:
+        debug_msg("FDT_NOP");
+        ++cursor;
+        break;
+      case FDT_PROP:
+        debug_msg("FDT_PROP");
+        ++cursor;
+
+        struct fdt_prop_data *property = (struct fdt_prop_data *) cursor;
+        ++cursor;
+        ++cursor;
+
+        swap_bytes(&property->len, sizeof(int32_t));
+        swap_bytes(&property->nameoff, sizeof(int32_t));
+
+        char *name = strings_start + property->nameoff;
+        debug_msg("Property: %s (len = %d)", name, property->len);
+
+        if (property->len > 0) {
+          uint32_t offset = 0;
+          void *extra_data = cursor;
+          while (offset < property->len) {
+            char *c = extra_data + offset++;
+            debug_printf("%x ", *c);
+          }
+          debug_msg("");
+          cursor = (int32_t *) fdt_align((uintptr_t) extra_data + offset, sizeof(int32_t));
+        }
+        break;
+      case FDT_END:
+        debug_msg("FDT_END");
+        goto exit;
+    }
+  }
+
+exit:
+  // Nothing
+  debug_msg("End of structure block");
+}
+
+void parse_device_tree(struct fdt_header *header) {
   // Device tree uses big-endian values, so we need to swap bytes
   void *p = header;
   size_t header_length = sizeof(struct fdt_header);
-  while(header_length) {
+  while (header_length) {
     header_length -= sizeof(int32_t);
-    swap_bytes(p+header_length, sizeof(int32_t));
+    swap_bytes(p + header_length, sizeof(int32_t));
   }
 
   fdt_header_print(header);
+
+  // Print reserved memory regions
+  void *reserve_memory_list = (p + header->off_mem_rsvmap);
+  struct fdt_reserve_entry *entry = reserve_memory_list;
+  while (entry->address) {
+    fdt_reserve_entry_print(entry);
+    entry++;
+  }
+
+  parse_device_tree_structure_block(header);
 }
