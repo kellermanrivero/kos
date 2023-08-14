@@ -35,6 +35,65 @@ void fdt_reserve_entry_print(struct fdt_reserve_entry *entry) {
   debug_msg("=======================================================");
 }
 
+char* fdt_prop_get_name(const struct fdt_header *header,
+                        const struct fdt_prop_data *prop) {
+  void *strings_block = (void *) header;
+  strings_block += header->off_dt_strings;
+  return strings_block + prop->nameoff;
+}
+
+int fdt_prop_of_type(char *name, char** names, size_t len) {
+  for(int c = 0; c < len; c++) {
+    if (strcmp(name, names[c]) == 0) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+fdt_token_t *fdt_prop_string_print(const struct fdt_header *header,
+                                   const struct fdt_prop_data *prop,
+                                   fdt_token_t *cursor) {
+  size_t length = prop->len;
+  if (length) {
+    void *data = cursor;
+    debug_printf("\"%s\"", data);
+    cursor = data + length;
+  }
+  return cursor;
+}
+
+fdt_token_t *fdt_prop_stringlist_print(const struct fdt_header *header,
+                                       const struct fdt_prop_data *prop,
+                                       fdt_token_t *cursor) {
+  size_t length = prop->len;
+  if (length) {
+    void *data = cursor;
+    void *data_end = data + length;
+    while(data < data_end) {
+      data = fdt_prop_string_print(header, prop, cursor);
+      debug_printf(", ");
+    }
+    cursor = (fdt_token_t *) data;
+  }
+  return cursor;
+}
+
+fdt_token_t *fdt_prop_generic_print(const struct fdt_header *header,
+                                    const struct fdt_prop_data *prop,
+                                    fdt_token_t *cursor) {
+  size_t length = prop->len;
+  if (length > 0) {
+    uint32_t offset = 0;
+    void *data = cursor;
+    while (offset < length) {
+      char *c = data + offset++;
+      debug_printf("%x ", *c);
+    }
+    cursor = data + offset;
+  }
+  return cursor;
+}
 
 void dump_device_tree(struct fdt_header *header) {
   void *block_start = ((void *) header) + header->off_dt_struct;
@@ -43,8 +102,8 @@ void dump_device_tree(struct fdt_header *header) {
   void *strings_start = ((void *) header) + header->off_dt_strings;
   debug_msg("Structure block range %p - %p", block_start, block_end);
 
-  int32_t nested_levels = 1;
-  int32_t *cursor = block_start;
+  int32_t nested_levels = 0;
+  fdt_token_t *cursor = block_start;
   while ((void *) cursor < block_end) {
     swap_bytes(cursor, sizeof(int32_t));
     int32_t token = *cursor;
@@ -83,7 +142,7 @@ void dump_device_tree(struct fdt_header *header) {
         DTB_DEBUG_LOG("FDT_END_NODE");
         --nested_levels;
         ++cursor;
-        debug_msg("}");
+        debug_msg("\b\b}");
         break;
       case FDT_NOP:
         DTB_DEBUG_LOG("FDT_NOP");
@@ -100,19 +159,17 @@ void dump_device_tree(struct fdt_header *header) {
         swap_bytes(&property->len, sizeof(int32_t));
         swap_bytes(&property->nameoff, sizeof(int32_t));
 
-        char *name = strings_start + property->nameoff;
-        debug_msg("Property: %s (len = %d)", name, property->len);
-
-        if (property->len > 0) {
-          uint32_t offset = 0;
-          void *extra_data = cursor;
-          while (offset < property->len) {
-            char *c = extra_data + offset++;
-            debug_printf("%x ", *c);
-          }
-          debug_msg("");
-          cursor = (int32_t *) fdt_align((uintptr_t) extra_data + offset, sizeof(int32_t));
+        char *name = fdt_prop_get_name(header, property);
+        debug_printf("%s = ", name);
+        if (fdt_prop_of_type(name, FDT_STRING_PROPERTIES, sizeof(FDT_STRING_PROPERTIES))) {
+          cursor = fdt_prop_string_print(header, property, cursor);
+        } else if (fdt_prop_of_type(name, FDT_STRINGLIST_PROPERTIES, sizeof(FDT_STRINGLIST_PROPERTIES))) {
+          cursor = fdt_prop_stringlist_print(header, property, cursor);
+        } else {
+          cursor = fdt_prop_generic_print(header, property, cursor);
         }
+        debug_msg("");
+        cursor = (fdt_token_t *) fdt_align((uintptr_t) cursor, sizeof(fdt_token_t));
         break;
       case FDT_END:
         DTB_DEBUG_LOG("FDT_END");

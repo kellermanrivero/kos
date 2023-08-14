@@ -43,3 +43,11 @@ void *memset(void *s, int c, size_t len);
  * @param len The length of the region
  */
 void swap_bytes(void* s, size_t len);
+
+/**
+ * Compares two strings character by character.
+ * @param s1 the first string
+ * @param s2 the second string
+ * @return If the strings are equal, the function returns 0.
+ */
+int strcmp(const char* s1, const char* s2);

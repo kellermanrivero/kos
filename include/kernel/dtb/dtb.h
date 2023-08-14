@@ -15,6 +15,13 @@
 #define FDT_PROP 0x00000003
 #define FDT_NOP 0x00000004
 #define FDT_END 0x00000009
+#define FDT_PROP_MODEL "model"
+#define FDT_PROP_COMPATIBLE "compatible"
+
+static char *FDT_STRING_PROPERTIES[] = {FDT_PROP_MODEL};
+static char *FDT_STRINGLIST_PROPERTIES[] = {FDT_PROP_COMPATIBLE};
+
+typedef uint32_t fdt_token_t;
 
 struct fdt_header {
   uint32_t magic;
@@ -40,7 +47,19 @@ struct fdt_prop_data {
 };
 
 uintptr_t fdt_align(uintptr_t ptr, size_t size);
-void fdt_header_print(struct fdt_header* header);
-void fdt_reserve_entry_print(struct fdt_reserve_entry* entry);
-void dump_device_tree(struct fdt_header* header);
-void parse_device_tree(struct fdt_header* header);
+void fdt_header_print(struct fdt_header *header);
+char *fdt_prop_get_name(const struct fdt_header *header,
+                        const struct fdt_prop_data *prop);
+int fdt_prop_of_type(char *name, char **names, size_t len);
+fdt_token_t *fdt_prop_string_print(const struct fdt_header *header,
+                                   const struct fdt_prop_data *prop,
+                                   fdt_token_t *cursor);
+fdt_token_t *fdt_prop_stringlist_print(const struct fdt_header *header,
+                                       const struct fdt_prop_data *prop,
+                                       fdt_token_t *cursor);
+fdt_token_t *fdt_prop_generic_print(const struct fdt_header *header,
+                                    const struct fdt_prop_data *prop,
+                                    fdt_token_t *cursor);
+void fdt_reserve_entry_print(struct fdt_reserve_entry *entry);
+void dump_device_tree(struct fdt_header *header);
+void parse_device_tree(struct fdt_header *header);
