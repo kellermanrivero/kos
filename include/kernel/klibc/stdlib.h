@@ -51,3 +51,10 @@ void swap_bytes(void* s, size_t len);
  * @return If the strings are equal, the function returns 0.
  */
 int strcmp(const char* s1, const char* s2);
+
+/**
+ * Calculates string length
+ * @param s the input string
+ * @return the length of the string
+ */
+size_t strlen(const char* s);

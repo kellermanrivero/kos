@@ -174,3 +174,12 @@ int strcmp(const char* s1, const char* s2) {
 
   return 0;
 }
+
+
+size_t strlen(const char* s) {
+  int c = 0;
+  while(*s) {
+    s++; c++;
+  }
+  return c;
+}
