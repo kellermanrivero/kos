@@ -15,11 +15,45 @@
 #define FDT_PROP 0x00000003
 #define FDT_NOP 0x00000004
 #define FDT_END 0x00000009
-#define FDT_PROP_MODEL "model"
-#define FDT_PROP_COMPATIBLE "compatible"
 
-static char *FDT_STRING_PROPERTIES[] = {FDT_PROP_MODEL};
-static char *FDT_STRINGLIST_PROPERTIES[] = {FDT_PROP_COMPATIBLE};
+// U32 properties
+#define FDT_PROP_PHANDLE "phandle"
+#define FDT_PROP_INTERRUPT_PARENT "interrupt-parent"
+#define FDT_PROP_INTERRUPT_CELLS "#interrupt-cells"
+#define FDT_PROP_ADDRESS_CELLS "#address-cells"
+#define FDT_PROP_SIZE_CELLS "#size-cells"
+#define FDT_PROP_CLOCK_CELLS "#clock-cells"
+#define FDT_PROP_GPIO_CELLS "#gpio-cells"
+#define FDT_PROP_BANK_WIDTH "bank-width"
+#define FDT_PROP_DEVICE_WIDTH "device-width"
+
+// String properties
+#define FDT_PROP_MODEL "model"
+#define FDT_PROP_DEVICE_TYPE "device_type"
+#define FDT_PROP_STDOUT_PATH "stdout-path"
+
+// String list properties
+#define FDT_PROP_COMPATIBLE "compatible"
+#define FDT_PROP_CLOCK_NAMES "clock-names"
+#define FDT_PROP_CLOCK_OUTPUT_NAMES "clock-output-names"
+
+static char *FDT_U32_PROPERTIES[] = {FDT_PROP_PHANDLE,
+                                     FDT_PROP_INTERRUPT_PARENT,
+                                     FDT_PROP_INTERRUPT_CELLS,
+                                     FDT_PROP_ADDRESS_CELLS,
+                                     FDT_PROP_SIZE_CELLS,
+                                     FDT_PROP_CLOCK_CELLS,
+                                     FDT_PROP_GPIO_CELLS,
+                                     FDT_PROP_BANK_WIDTH,
+                                     FDT_PROP_DEVICE_WIDTH};
+
+static char *FDT_STRING_PROPERTIES[] = {FDT_PROP_MODEL,
+                                        FDT_PROP_DEVICE_TYPE,
+                                        FDT_PROP_STDOUT_PATH};
+
+static char *FDT_STRINGLIST_PROPERTIES[] = {FDT_PROP_COMPATIBLE,
+                                            FDT_PROP_CLOCK_NAMES,
+                                            FDT_PROP_CLOCK_OUTPUT_NAMES};
 
 typedef uint32_t fdt_token_t;
 
@@ -51,6 +85,9 @@ void fdt_header_print(struct fdt_header *header);
 char *fdt_prop_get_name(const struct fdt_header *header,
                         const struct fdt_prop_data *prop);
 int fdt_prop_of_type(char *name, char **names, size_t len);
+fdt_token_t *fdt_prop_u32_print(const struct fdt_header *header,
+                                const struct fdt_prop_data *prop,
+                                fdt_token_t *cursor);
 fdt_token_t *fdt_prop_string_print(const struct fdt_header *header,
                                    const struct fdt_prop_data *prop,
                                    fdt_token_t *cursor);

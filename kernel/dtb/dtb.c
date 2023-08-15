@@ -51,6 +51,19 @@ int fdt_prop_of_type(char *name, char** names, size_t len) {
   return 0;
 }
 
+fdt_token_t *fdt_prop_u32_print(const struct fdt_header *header,
+                                const struct fdt_prop_data *prop,
+                                fdt_token_t *cursor) {
+  size_t length = prop->len;
+  if (length) {
+    int32_t *data = (int32_t*) cursor;
+    swap_bytes(data, sizeof(int32_t));
+    debug_printf("<%d>", *data);
+    cursor++;
+  }
+  return cursor;
+}
+
 fdt_token_t *fdt_prop_string_print(const struct fdt_header *header,
                                    const struct fdt_prop_data *prop,
                                    fdt_token_t *cursor) {
@@ -98,8 +111,6 @@ fdt_token_t *fdt_prop_generic_print(const struct fdt_header *header,
 void dump_device_tree(struct fdt_header *header) {
   void *block_start = ((void *) header) + header->off_dt_struct;
   void *block_end = block_start + header->size_dt_struct;
-
-  void *strings_start = ((void *) header) + header->off_dt_strings;
   debug_msg("Structure block range %p - %p", block_start, block_end);
 
   int32_t nested_levels = 0;
@@ -160,15 +171,21 @@ void dump_device_tree(struct fdt_header *header) {
         swap_bytes(&property->nameoff, sizeof(int32_t));
 
         char *name = fdt_prop_get_name(header, property);
-        debug_printf("%s = ", name);
-        if (fdt_prop_of_type(name, FDT_STRING_PROPERTIES, sizeof(FDT_STRING_PROPERTIES))) {
-          cursor = fdt_prop_string_print(header, property, cursor);
-        } else if (fdt_prop_of_type(name, FDT_STRINGLIST_PROPERTIES, sizeof(FDT_STRINGLIST_PROPERTIES))) {
-          cursor = fdt_prop_stringlist_print(header, property, cursor);
+        if (property->len == 0) {
+          debug_msg("%s", name);
         } else {
-          cursor = fdt_prop_generic_print(header, property, cursor);
+          debug_printf("%s = ", name);
+          if (fdt_prop_of_type(name, FDT_STRING_PROPERTIES, sizeof(FDT_STRING_PROPERTIES))) {
+            cursor = fdt_prop_string_print(header, property, cursor);
+          } else if (fdt_prop_of_type(name, FDT_STRINGLIST_PROPERTIES, sizeof(FDT_STRINGLIST_PROPERTIES))) {
+            cursor = fdt_prop_stringlist_print(header, property, cursor);
+          } else if (fdt_prop_of_type(name, FDT_U32_PROPERTIES, sizeof(FDT_U32_PROPERTIES))) {
+            cursor = fdt_prop_u32_print(header, property, cursor);
+          } else {
+            cursor = fdt_prop_generic_print(header, property, cursor);
+          }
+          debug_msg("");
         }
-        debug_msg("");
         cursor = (fdt_token_t *) fdt_align((uintptr_t) cursor, sizeof(fdt_token_t));
         break;
       case FDT_END:
