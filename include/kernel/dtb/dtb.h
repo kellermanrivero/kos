@@ -87,18 +87,18 @@ struct fdt_prop_data {
 };
 
 struct fdt_ops {
-  void (*begin)(struct fdt_header *header);
-  void (*end)(struct fdt_header *header);
-  void (*visit_token)(struct fdt_header *header, fdt_token_t *cursor);
-  void (*visit_begin_node)(struct fdt_header *header, fdt_token_t *cursor, const char *name);
-  void (*visit_end_node)(struct fdt_header *header, fdt_token_t *cursor);
-  void (*visit_nop_node)(struct fdt_header *header, fdt_token_t *cursor);
-  void (*visit_property)(struct fdt_header *header, fdt_token_t *cursor, struct fdt_prop_data *property, void* property_value);
+  void (*begin)(void *data_ptr, struct fdt_header *header);
+  void (*end)(void *data_ptr, struct fdt_header *header);
+  void (*visit_token)(void *data_ptr, struct fdt_header *header, fdt_token_t *cursor);
+  void (*visit_begin_node)(void *data_ptr, struct fdt_header *header, fdt_token_t *cursor, const char *name);
+  void (*visit_end_node)(void *data_ptr, struct fdt_header *header, fdt_token_t *cursor);
+  void (*visit_nop_node)(void *data_ptr, struct fdt_header *header, fdt_token_t *cursor);
+  void (*visit_property)(void *data_ptr, struct fdt_header *header, fdt_token_t *cursor, struct fdt_prop_data *property, void* property_value);
 };
 
 uintptr_t fdt_align(uintptr_t ptr, size_t size);
 fdt_token_t *fdt_advance_cursor(const fdt_token_t *ptr, size_t offset);
-void fdt_traverse(struct fdt_header *header, struct fdt_ops *ops);
+void fdt_traverse(struct fdt_header *header, struct fdt_ops *ops, void* data_ptr);
 char *fdt_prop_get_name(const struct fdt_header *header,
                         const struct fdt_prop_data *prop);
 int fdt_prop_of_type(char *name, char **names, size_t len);
@@ -118,13 +118,13 @@ void fdt_reserve_entry_print(struct fdt_reserve_entry *entry);
 void parse_device_tree(struct fdt_header *header);
 
 /* Endianess Fixup */
-void fdt_fixup_header_endianness(struct fdt_header *header);
-void fdt_fixup_token_endianness(struct fdt_header *header, fdt_token_t *token);
-void fdt_fixup_property_endianness(struct fdt_header *header, fdt_token_t *token, struct fdt_prop_data *property, void* property_value);
+void fdt_fixup_header_endianness(void* data_ptr, struct fdt_header *header);
+void fdt_fixup_token_endianness(void* data_ptr, struct fdt_header *header, fdt_token_t *token);
+void fdt_fixup_property_endianness(void* data_ptr, struct fdt_header *header, fdt_token_t *token, struct fdt_prop_data *property, void* property_value);
 
 /* Dump */
-void fdt_dump_header(struct fdt_header *header);
-void fdt_dump_begin_node(struct fdt_header *header, fdt_token_t *token, const char* name);
-void fdt_dump_end_node(struct fdt_header *header, fdt_token_t *token);
-void fdt_dump_token(struct fdt_header *header, fdt_token_t *token);
-void fdt_dump_property(struct fdt_header *header, fdt_token_t *token, struct fdt_prop_data *property, void* property_value);
+void fdt_dump_header(void* data_ptr, struct fdt_header *header);
+void fdt_dump_begin_node(void* data_ptr, struct fdt_header *header, fdt_token_t *token, const char* name);
+void fdt_dump_end_node(void* data_ptr, struct fdt_header *header, fdt_token_t *token);
+void fdt_dump_token(void* data_ptr, struct fdt_header *header, fdt_token_t *token);
+void fdt_dump_property(void* data_ptr, struct fdt_header *header, fdt_token_t *token, struct fdt_prop_data *property, void* property_value);

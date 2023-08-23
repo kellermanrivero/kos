@@ -24,10 +24,10 @@ fdt_token_t *fdt_advance_cursor(const fdt_token_t *cursor, size_t offset) {
   return (fdt_token_t *) fdt_align(new_cursor, sizeof(fdt_token_t));
 }
 
-void fdt_traverse(struct fdt_header *header, struct fdt_ops *ops) {
+void fdt_traverse(struct fdt_header *header, struct fdt_ops *ops, void *data_ptr) {
 
   if (ops->begin) {
-    ops->begin(header);
+    ops->begin(data_ptr, header);
   }
 
   uintptr_t header_start = (uintptr_t) header;
@@ -37,7 +37,7 @@ void fdt_traverse(struct fdt_header *header, struct fdt_ops *ops) {
 
   while ((uintptr_t) cursor < block_end) {
     if (ops->visit_token) {
-      ops->visit_token(header, cursor);
+      ops->visit_token(data_ptr, header, cursor);
     }
 
     fdt_token_t token = *cursor;
@@ -49,7 +49,7 @@ void fdt_traverse(struct fdt_header *header, struct fdt_ops *ops) {
         const char *name = (char *) ++cursor;
 
         if (ops->visit_begin_node) {
-          ops->visit_begin_node(header, c, name);
+          ops->visit_begin_node(data_ptr, header, c, name);
         }
 
         // Move the cursor
@@ -60,7 +60,7 @@ void fdt_traverse(struct fdt_header *header, struct fdt_ops *ops) {
         DTB_DEBUG_LOG("FDT_END_NODE", 0);
         fdt_token_t *c = cursor++;
         if (ops->visit_end_node) {
-          ops->visit_end_node(header, c);
+          ops->visit_end_node(data_ptr, header, c);
         }
         break;
       }
@@ -68,7 +68,7 @@ void fdt_traverse(struct fdt_header *header, struct fdt_ops *ops) {
         DTB_DEBUG_LOG("FDT_NOP", 0);
         fdt_token_t *c = cursor++;
         if (ops->visit_nop_node) {
-          ops->visit_nop_node(header, c);
+          ops->visit_nop_node(data_ptr, header, c);
           break;
         }
       }
@@ -82,7 +82,7 @@ void fdt_traverse(struct fdt_header *header, struct fdt_ops *ops) {
         }
 
         if (ops->visit_property) {
-          ops->visit_property(header, c, property, property_value);
+          ops->visit_property(data_ptr, header, c, property, property_value);
         }
 
         // Move the cursor
@@ -102,7 +102,7 @@ void fdt_traverse(struct fdt_header *header, struct fdt_ops *ops) {
 
 exit:
   if (ops->end) {
-    ops->end(header);
+    ops->end(data_ptr, header);
   }
 }
 
@@ -192,7 +192,7 @@ void parse_device_tree(struct fdt_header *header) {
           .visit_token = fdt_fixup_token_endianness,
           .visit_property = fdt_fixup_property_endianness};
 
-  fdt_traverse(header, &fixup_ops);
+  fdt_traverse(header, &fixup_ops, NULL);
 
   // Dump device tree blob
   struct fdt_ops dump_ops = {
@@ -203,7 +203,7 @@ void parse_device_tree(struct fdt_header *header) {
           .visit_property = fdt_dump_property
   };
 
-  fdt_traverse(header, &dump_ops);
+  fdt_traverse(header, &dump_ops, NULL);
 
   // Print reserved memory regions
   void *p = header;
@@ -216,7 +216,7 @@ void parse_device_tree(struct fdt_header *header) {
 }
 
 /* Endianness fixup */
-void fdt_fixup_header_endianness(struct fdt_header *header) {
+void fdt_fixup_header_endianness(void* data_ptr, struct fdt_header *header) {
   void *p = header;
   size_t header_length = sizeof(struct fdt_header);
   while (header_length) {
@@ -225,18 +225,18 @@ void fdt_fixup_header_endianness(struct fdt_header *header) {
   }
 }
 
-void fdt_fixup_token_endianness(struct fdt_header *header, fdt_token_t *token) {
+void fdt_fixup_token_endianness(void* data_ptr, struct fdt_header *header, fdt_token_t *token) {
   swap_bytes(token, sizeof(fdt_token_t));
 }
 
-void fdt_fixup_property_endianness(struct fdt_header *header, fdt_token_t *token, struct fdt_prop_data *property, void *property_value) {
+void fdt_fixup_property_endianness(void* data_ptr, struct fdt_header *header, fdt_token_t *token, struct fdt_prop_data *property, void *property_value) {
   swap_bytes(&property->len, sizeof(int32_t));
   swap_bytes(&property->nameoff, sizeof(int32_t));
 }
 
 /* Dump */
 static uint32_t nested_levels = 0;
-void fdt_dump_header(struct fdt_header *header) {
+void fdt_dump_header(void* data_ptr, struct fdt_header *header) {
   debug_msg("=============== Device Tree Blob (Header) =================");
   debug_msg("Version: %d (compatible with: %d)", header->version, header->last_comp_version);
   debug_msg("Magic: %x", header->magic);
@@ -250,7 +250,7 @@ void fdt_dump_header(struct fdt_header *header) {
   debug_msg("===========================================================");
 }
 
-void fdt_dump_begin_node(struct fdt_header *header, fdt_token_t *token, const char* name) {
+void fdt_dump_begin_node(void* data_ptr, struct fdt_header *header, fdt_token_t *token, const char* name) {
   nested_levels++;
   if (*name) {
     debug_msg("%s {", name);
@@ -259,12 +259,12 @@ void fdt_dump_begin_node(struct fdt_header *header, fdt_token_t *token, const ch
   }
 }
 
-void fdt_dump_end_node(struct fdt_header *header, fdt_token_t *token) {
+void fdt_dump_end_node(void* data_ptr, struct fdt_header *header, fdt_token_t *token) {
   debug_msg("\b\b}");
   nested_levels--;
 }
 
-void fdt_dump_token(struct fdt_header *header, fdt_token_t *token) {
+void fdt_dump_token(void* data_ptr, struct fdt_header *header, fdt_token_t *token) {
   for (int p = 1; p <= nested_levels; p++) {
     int pp = p;
     while (pp) {
@@ -274,7 +274,7 @@ void fdt_dump_token(struct fdt_header *header, fdt_token_t *token) {
   }
 }
 
-void fdt_dump_property(struct fdt_header *header, fdt_token_t *token, struct fdt_prop_data *property, void *property_value) {
+void fdt_dump_property(void* data_ptr, struct fdt_header *header, fdt_token_t *token, struct fdt_prop_data *property, void *property_value) {
   // Move the cursor ahead of property
   char *name = fdt_prop_get_name(header, property);
   if (property->len == 0) {

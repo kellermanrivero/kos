@@ -175,6 +175,33 @@ int strcmp(const char* s1, const char* s2) {
   return 0;
 }
 
+char *strstr(const char *haystack, const char *needle) {
+  if (haystack == NULL && needle == NULL) {
+    return NULL;
+  }
+
+  while (*haystack) {
+    if (*haystack == *needle) {
+      const char *s1 = haystack;
+      const char *s2 = needle;
+      while(*s1 || *s2) {
+        if (*s1 == *s2) {
+          s1++;
+          s2++;
+        } else {
+          break;
+        }
+      }
+
+      if (*s2 == '\0') {
+        return (char *) haystack;
+      }
+    }
+    haystack++;
+  }
+
+  return NULL;
+}
 
 size_t strlen(const char* s) {
   int c = 0;

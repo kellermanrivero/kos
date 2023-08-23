@@ -53,6 +53,13 @@ void swap_bytes(void* s, size_t len);
 int strcmp(const char* s1, const char* s2);
 
 /**
+ * Finds the first occurrence of the substring needle in the string haystack.
+ * @param haystack the haystack string
+ * @param needle the needle string
+ */
+char *strstr(const char *haystack, const char *needle);
+
+/**
  * Calculates string length
  * @param s the input string
  * @return the length of the string

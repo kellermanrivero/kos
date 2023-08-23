@@ -3,6 +3,7 @@ add_subdirectory(dtb)
 
 set(KERNEL_SOURCES
         kmalloc.c
+        system_info.c
 )
 
 add_library(kernel STATIC ${KERNEL_SOURCES})
