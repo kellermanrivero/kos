@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 enable_language(ASM C CXX)
-project("VirtuOS")
+project("K OS")
 
 # Use C99
 set(CMAKE_C_STANDARD 99)
@@ -17,10 +17,10 @@ target_link_libraries(kernel.elf boot kernel)
 set_target_properties(kernel.elf PROPERTIES LINK_FLAGS "-nostdlib -nostartfiles -ffreestanding -T ${CMAKE_SOURCE_DIR}/main.ld")
 
 add_custom_command(
-        OUTPUT virtuos.bin
+        OUTPUT kos.bin
         DEPENDS kernel.elf
-        COMMENT "objcopy -O binary kernel.elf virtuos.bin"
-        COMMAND ${CMAKE_OBJCOPY} ARGS -O binary kernel.elf virtuos.bin
+        COMMENT "objcopy -O binary kernel.elf kos.bin"
+        COMMAND ${CMAKE_OBJCOPY} ARGS -O binary kernel.elf kos.bin
 )
 
 add_custom_target(run ALL DEPENDS kernel.elf)

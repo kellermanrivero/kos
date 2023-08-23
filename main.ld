@@ -1,4 +1,4 @@
-ENTRY(__vos_start)
+ENTRY(__kos_start)
 SECTIONS
 {
     . = 0x40000000;

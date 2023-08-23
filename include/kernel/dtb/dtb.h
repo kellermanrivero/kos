@@ -30,6 +30,7 @@
 #define FDT_PROP_LINUX_CODE "linux,code"
 
 // String properties
+#define FDT_PROP_LABEL "label"
 #define FDT_PROP_MODEL "model"
 #define FDT_PROP_DEVICE_TYPE "device_type"
 #define FDT_PROP_STDOUT_PATH "stdout-path"
@@ -51,7 +52,8 @@ static char *FDT_U32_PROPERTIES[] = {FDT_PROP_PHANDLE,
                                      FDT_PROP_LINUX_PCI_DOMAIN,
                                      FDT_PROP_LINUX_CODE};
 
-static char *FDT_STRING_PROPERTIES[] = {FDT_PROP_MODEL,
+static char *FDT_STRING_PROPERTIES[] = {FDT_PROP_LABEL,
+                                        FDT_PROP_MODEL,
                                         FDT_PROP_DEVICE_TYPE,
                                         FDT_PROP_STDOUT_PATH};
 
